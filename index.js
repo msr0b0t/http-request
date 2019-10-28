@@ -1,32 +1,29 @@
-const request = require('request');
-const mongoose = require('mongoose');
-const bluebird = require('bluebird');
+const mongoose = require("mongoose");
+const got = require("got");
+const Article = require("./models/article");
 
-mongoose.connect('mongodb://localhost:27017/http-request-db');
+const mongooseOptions = {
+	useNewUrlParser: true,
+	useCreateIndex: true,
+	useFindAndModify: false,
+	reconnectTries: 30,
+	reconnectInterval: 500,
+	poolSize: 100,
+	keepAlive: true,
+	keepAliveInitialDelay: 300000,
+	useUnifiedTopology: true,
+};
+mongoose.connect("mongodb://localhost:27017/http-request-db", mongooseOptions).catch((error) => console.error(error.message));
 
-const Article = require('./models/article');
-
-const doi = 'https://api.crossref.org/works/10.1017/cbo9781139058605.030';
-
-function getArticle(doi) {
-	return new bluebird((resolve, reject) => {
-		request(doi, {json: true}, (err, res, body) => {
-			if (err) {
-				return reject(err);
-			}
-			const jsonstring = JSON.stringify(body);
-			Article.create({doiString: doi, rawData: jsonstring}).then(articleObject => {
-				return resolve(articleObject);
-			}).catch(err => {
-				return reject(err);
-			});
-		});
-	});
+async function getArticle(doi) {
+	const { body } = await got(doi, { json: true });
+	const articleObject = await Article.create({ doiString: doi, rawData: JSON.stringify(body) });
+	return articleObject;
 }
 exports.getArticle = getArticle;
 
-// getArticle(doi).then(res => {
-// 	console.log(res);
-// }).catch(e => {
-// 	console.log(e);
-// });
+// getArticle("https://api.crossref.org/works/10.1017/cbo9781139058605.030")
+// 	.then(console.log)
+// 	.then(mongoose.disconnect)
+// 	.then(() => process.exit(0))
+// 	.catch(console.error);

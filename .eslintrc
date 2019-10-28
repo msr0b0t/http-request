@@ -1,0 +1,13 @@
+{
+  "extends": "iamnapo",
+  "rules": {
+		"indent": [
+			"error",
+			"tab"
+		],
+		"no-tabs": "off",
+		"react/static-property-placement": "off",
+		"react/jsx-indent": ["error", "tab"],
+		"react/jsx-indent-props": ["error", "tab"]
+	}
+}
